@@ -22,14 +22,14 @@ spec:
   storageClassName: local-storage
   local:
     path: /data/postgres
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-                - minikube
+  # nodeAffinity:
+  #   required:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #           - key: kubernetes.io/hostname
+  #             operator: In
+  #             values:
+  #               - minikube
 
 ---
 apiVersion: v1
@@ -47,14 +47,14 @@ spec:
   storageClassName: local-storage
   local:
     path: /data/backup
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-                - minikube
+  # nodeAffinity:
+  #   required:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #           - key: kubernetes.io/hostname
+  #             operator: In
+  #             values:
+  #               - minikube
 
 ---
 apiVersion: v1
@@ -72,64 +72,63 @@ spec:
   storageClassName: local-storage
   local:
     path: /data/postgres2
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-                - minikube
+  # nodeAffinity:
+  #   required:
+  #     nodeSelectorTerms:
+  #       - matchExpressions:
+  #           - key: kubernetes.io/hostname
+  #             operator: In
+  #             values:
+  #               - minikube
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: local-pv4
+#   labels:
+#     role: backup
+# spec:
+#   capacity:
+#     storage: 5Gi
+#   volumeMode: Filesystem
+#   accessModes:
+#     - ReadWriteOnce
+#   storageClassName: local-storage
+#   local:
+#     path: /data/backup
+#   nodeAffinity:
+#     required:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#             - key: kubernetes.io/hostname
+#               operator: In
+#               values:
+#                 - minikube
 
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: local-pv4
-  labels:
-    role: backup
-spec:
-  capacity:
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: local-storage
-  local:
-    path: /data/backup
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-                - minikube
-
----
-apiVersion: v1
-kind: PersistentVolume
-metadata:
-  name: local-pv5
-  labels:
-    role: instance
-spec:
-  capacity:
-    storage: 5Gi
-  volumeMode: Filesystem
-  accessModes:
-    - ReadWriteOnce
-  storageClassName: local-storage
-  local:
-    path: /data/postgres3
-  nodeAffinity:
-    required:
-      nodeSelectorTerms:
-        - matchExpressions:
-            - key: kubernetes.io/hostname
-              operator: In
-              values:
-                - minikube
+# ---
+# apiVersion: v1
+# kind: PersistentVolume
+# metadata:
+#   name: local-pv5
+#   labels:
+#     role: instance
+# spec:
+#   capacity:
+#     storage: 5Gi
+#   volumeMode: Filesystem
+#   accessModes:
+#     - ReadWriteOnce
+#   storageClassName: local-storage
+#   local:
+#     path: /data/postgres3
+#   nodeAffinity:
+#     required:
+#       nodeSelectorTerms:
+#         - matchExpressions:
+#             - key: kubernetes.io/hostname
+#               operator: In
+#               values:
+#                 - minikube
 # apiVersion: v1
 # kind: PersistentVolumeClaim
 # metadata:
