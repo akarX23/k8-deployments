@@ -4,6 +4,24 @@ metadata:
   name: hippo
   namespace: postgres-operator
 spec:
+  userInterface:
+    pgAdmin:
+      image: registry.developers.crunchydata.com/crunchydata/crunchy-pgadmin4:ubi8-4.30-4
+      dataVolumeClaimSpec:
+        storageClassName: local-storage
+        volumeMode: Filesystem
+        accessModes:
+          - ReadWriteOnce
+        resources:
+          requests:
+            storage: 2Gi
+        selector:
+          matchLabels:
+            role: "pgAdmin"
+      service:
+        type: NodePort
+        nodePort: 30400
+
   users:
     - name: akarx
       databases:
@@ -69,13 +87,3 @@ spec:
       service:
         type: NodePort
         nodePort: 30300
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-            - weight: 1
-              podAffinityTerm:
-                topologyKey: kubernetes.io/hostname
-                labelSelector:
-                  matchLabels:
-                    postgres-operator.crunchydata.com/cluster: hippo-ha
-                    postgres-operator.crunchydata.com/role: pgbouncer

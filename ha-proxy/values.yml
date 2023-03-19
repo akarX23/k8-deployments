@@ -1,0 +1,21 @@
+controller:
+  extraArgs:
+    annotations-prefix: akarx-ha-proxy
+
+  hostNetwork: true
+
+  kind: DaemonSet
+
+  daemonset:
+    # Enable binding ports to the host machine
+    useHostPort: true
+
+  service:
+    httpPorts:
+      - port: 80
+        targetPort: http
+        nodePort: 30800
+    httpsPorts:
+      - port: 443
+        targetPort: https
+        nodePort: 30801
