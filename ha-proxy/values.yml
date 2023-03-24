@@ -2,13 +2,12 @@ controller:
   extraArgs:
     annotations-prefix: akarx-ha-proxy
 
-  hostNetwork: true
-
   kind: DaemonSet
 
   daemonset:
     # Enable binding ports to the host machine
     useHostPort: true
+    useHostNetwork: true
 
   service:
     httpPorts:

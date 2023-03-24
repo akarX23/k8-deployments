@@ -1,0 +1,11 @@
+replicas: 2
+
+serviceAccount: akarx-kafka-strimzi
+
+tmpDirSizeLimit: 500Mi
+
+logLevel: debug
+
+extraEnvs:
+  - name: JAVA_OPTS
+    value: "-Xms2048m -Xmx2048m"
