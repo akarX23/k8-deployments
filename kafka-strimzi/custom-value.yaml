@@ -9,3 +9,11 @@ logLevel: debug
 extraEnvs:
   - name: JAVA_OPTS
     value: "-Xms2048m -Xmx2048m"
+
+resources:
+  limits:
+    memory: 12Gi
+    cpu: 8000m
+  requests:
+    memory: 8Gi
+    cpu: 4000m

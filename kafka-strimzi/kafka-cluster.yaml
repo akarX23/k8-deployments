@@ -25,16 +25,38 @@ spec:
       inter.broker.protocol.version: "3.4"
     storage:
       type: persistent-claim
-      size: 5Gi
+      size: 2Gi
       deleteClaim: true
       class: kafka-storage
+    template:
+      pod:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - k8-4
   zookeeper:
     replicas: 3
     storage:
       type: persistent-claim
-      size: 5Gi
+      size: 2Gi
       deleteClaim: true
       class: kafka-storage
+    template:
+      pod:
+        affinity:
+          nodeAffinity:
+            requiredDuringSchedulingIgnoredDuringExecution:
+              nodeSelectorTerms:
+                - matchExpressions:
+                    - key: kubernetes.io/hostname
+                      operator: In
+                      values:
+                        - k8-5
   entityOperator:
     topicOperator: {}
     userOperator: {}
