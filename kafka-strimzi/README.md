@@ -1,3 +1,4 @@
+
 # Kafka on K8s using Strimzi
 
 Kafka can be deployed on a production level using an operator developed by CNCF called Strimzi. You can get more detailed information about Strimzi on their [GitHub](https://github.com/strimzi/strimzi-kafka-operator) and their [website](https://strimzi.io/).
@@ -232,7 +233,7 @@ kubectl get secret -n kafka $CLUSTER_NAME-cluster-ca-cert -o jsonpath='{.data.ca
 
 So far we were using `ephemeral storage` which would be deleted when the pods dies. For a production cluster, we would do this using `Persistent Volumes`. They allow us to map external volumes for the J8 Pods. There are different ways of using PVs, refer [here](https://kubernetes.io/docs/concepts/storage/persistent-volumes/).
 
-First make the external listeners to not use:
+First make the external listeners to use Node Port and not use tls:
 
 ```
 # Kafka-Cluster.yaml
@@ -517,3 +518,10 @@ akarx-cluster-zookeeper-2                       1/1     Running   0          25m
 strimzi-cluster-operator-6b7f585786-89h5l       1/1     Running   0          45m   10.233.102.94   k8-6   <none>           <none>
 strimzi-cluster-operator-6b7f585786-jzll9       1/1     Running   0          45m   10.233.69.75    k8-5   <none>           <none>
 ```
+Now we have the pods using the PVs we created. If you go to the actual directories on the nodes where you mapped the pods, you should see the Kafka data.
+## Conclusion
+We have looked at few configurations of Strimzi which should cover most of your needs. But there can be a lot more options to choose from. I have listed some important links you can refer to.
+- [Overview of Strimzi Components](https://strimzi.io/docs/operators/latest/overview.html)
+- [Deployment Options and Procedure](https://strimzi.io/docs/operators/latest/deploying.html)
+- [Configuration options for all Strimzi components](https://strimzi.io/docs/operators/latest/configuring.html)
+- [Custom Resource API](https://strimzi.io/docs/operators/latest/configuring.html#api_reference-str)
