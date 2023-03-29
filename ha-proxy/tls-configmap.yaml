@@ -1,8 +1,0 @@
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: haproxy-ingress-kubernetes-ingress
-  namespace: ha-proxy
-data:
-  ssl-certificate: "default/test-cert"
-  server-ssl: "true"

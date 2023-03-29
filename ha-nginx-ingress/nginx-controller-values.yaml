@@ -1,0 +1,23 @@
+fullNameOverride: nginx-controller
+nameOverride: nginx-ingress
+
+controller:
+  name: controller
+  containerName: controller-container
+
+  watchIngressWithoutClass: false
+
+  ingressClassResource:
+    name: nginx-ingress
+    enabled: true
+    default: true
+    controllerValue: "k8s.io/ingress-nginx"
+
+  ingressClass: nginx-ingress
+  service:
+    type: NodePort
+    nodePorts:
+      http: 32080
+      https: 32443
+      tcp:
+        8080: 32808
