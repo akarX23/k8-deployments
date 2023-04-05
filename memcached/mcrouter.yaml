@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mcrouter
+  namespace: mcrouter
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: mcrouter
+  template:
+    metadata:
+      labels:
+        app: mcrouter
+    spec:
+      containers:
+        - name: mcrouter
+          image: mcrouter/mcrouter
+          args: ["-p", "5000", "--config-file", "/etc/mcrouter/mcrouter.conf"]
+          volumeMounts:
+            - name: mcrouter-config
+              mountPath: /etc/mcrouter
+      volumes:
+        - name: mcrouter-config
+          configMap:
+            name: mcrouter-config
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mcrouter
+  namespace: mcrouter
+  labels:
+    app: mcrouter
+spec:
+  type: ClusterIP
+  ports:
+    - name: mcrouter
+      port: 5000
+  selector:
+    app: mcrouter

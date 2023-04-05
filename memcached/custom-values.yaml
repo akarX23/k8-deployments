@@ -1,0 +1,35 @@
+global:
+  storageClass: "longhorn"
+
+fullnameOverride: "mc-operator"
+
+architecture: high-availability
+
+replicaCount: 3
+
+resources:
+  limits: {}
+  requests:
+    memory: 512Mi
+    cpu: 250m
+
+autoscaling:
+  enabled: true
+  minReplicas: 3
+  maxReplicas: 6
+  targetCPU: 50
+  targetMemory: 50
+
+service:
+  type: NodePort
+  ports:
+    memcached: 11211
+  nodePorts:
+    memcached: 30211
+
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  accessModes:
+    - ReadWriteOnce
+  size: 2Gi
