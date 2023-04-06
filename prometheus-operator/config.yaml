@@ -1,8 +1,8 @@
-nameOverride: "akarx"
+nameOverride: "prom-op"
 
-namespaceOverride: "prometheus-operator"
+namespaceOverride: "monitoring"
 
-fullnameOverride: "akarx"
+fullnameOverride: "prom"
 
 prometheus:
   prometheusSpec:
@@ -52,7 +52,7 @@ alertmanager:
 grafana: # Important
   defaultDashboardsTimezone: Asia/Kolkata
   adminPassword: akarx-operator
-  namespaceOverride: "prometheus-operator"
+  namespaceOverride: "monitoring"
   service:
     type: NodePort
     nodePort: 30091
@@ -67,7 +67,7 @@ grafana: # Important
                   - master
 
 kube-state-metrics: # Important
-  namespaceOverride: "prometheus-operator"
+  namespaceOverride: "monitoring"
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -79,4 +79,4 @@ kube-state-metrics: # Important
                   - master
 
 prometheus-node-exporter:
-  namespaceOverride: "prometheus-operator"
+  namespaceOverride: "monitoring"

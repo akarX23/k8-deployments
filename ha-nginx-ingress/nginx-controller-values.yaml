@@ -5,6 +5,28 @@ controller:
   name: controller
   containerName: controller-container
 
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: type
+                operator: In
+                values:
+                  - master
+  nodeSelector:
+    type: master
+
+  autoscaling:
+    apiVersion: autoscaling/v2
+    enabled: true
+    annotations: {}
+    minReplicas: 1
+    maxReplicas: 9
+    targetCPUUtilizationPercentage: 50
+    targetMemoryUtilizationPercentage: 50
+    behavior: {}
+
   watchIngressWithoutClass: false
 
   ingressClassResource:
@@ -21,3 +43,10 @@ controller:
       https: 32443
       tcp:
         8080: 32808
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: nginx-ingress
+      scrapeInterval: 10s

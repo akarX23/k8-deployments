@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-ingress
+  namespace: monitoring
+spec:
+  ingressClassName: nginx-ingress
+  rules:
+    - host: prometheus.dashboard
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: prom-prometheus
+                port:
+                  number: 9090
+    - host: grafana.dashboard
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: monitoring-op-grafana
+                port:
+                  number: 80
