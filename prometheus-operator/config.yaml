@@ -8,6 +8,8 @@ prometheus:
   prometheusSpec:
     serviceMonitorSelectorNilUsesHelmValues: false # Important
     serviceMonitorSelector: {} # Important
+    podMonitorSelectorNilUsesHelmValues: false
+    podMonitorSelector: {}
     scrapeInterval: "10s"
     podAntiAffinity: "hard"
     affinity: # Important

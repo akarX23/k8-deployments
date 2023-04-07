@@ -1,0 +1,80 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  labels:
+    app: keyclaok
+  name: keycloak
+  namespace: pg-test-app
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: keycloak
+  template:
+    metadata:
+      labels:
+        app: keycloak
+    spec:
+      containers:
+        - env:
+            - name: KEYCLOAK_ADMIN
+              value: "admin"
+            - name: KEYCLOAK_ADMIN_PASSWORD
+              value: "password"
+            - name: DB_VENDOR
+              value: POSTGRES
+            - name: DB_ADDR
+              valueFrom:
+                secretKeyRef:
+                  name: akarx-pguser-akarx
+                  key: host
+            - name: DB_PORT
+              valueFrom:
+                secretKeyRef:
+                  name: akarx-pguser-akarx
+                  key: port
+            - name: DB_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: akarx-pguser-akarx
+                  key: dbname
+            - name: DB_USER
+              valueFrom:
+                secretKeyRef:
+                  name: akarx-pguser-akarx
+                  key: user
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: akarx-pguser-akarx
+                  key: password
+          image: jboss/keycloak:15.0.2
+          imagePullPolicy: IfNotPresent
+          name: keycloak
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+            - containerPort: 8443
+              name: https
+              protocol: TCP
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  namespace: pg-test-app
+  labels:
+    app: keycloak
+spec:
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http
+    - name: https
+      port: 8443
+      targetPort: https
+  selector:
+    app: keycloak
+  type: ClusterIP
