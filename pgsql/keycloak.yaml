@@ -27,12 +27,12 @@ spec:
               valueFrom:
                 secretKeyRef:
                   name: akarx-pguser-akarx
-                  key: host
+                  key: pgbouncer-host
             - name: DB_PORT
               valueFrom:
                 secretKeyRef:
                   name: akarx-pguser-akarx
-                  key: port
+                  key: pgbouncer-port
             - name: DB_DATABASE
               valueFrom:
                 secretKeyRef:

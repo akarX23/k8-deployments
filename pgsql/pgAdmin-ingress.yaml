@@ -1,0 +1,23 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: pgadmin
+  namespace: pg-test-app
+  annotations:
+    nginx.org/location-snippets: |
+      proxy_pass http://akarx-pgadmin:5050;
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+spec:
+  ingressClassName: nginx-ingress
+  rules:
+    - host: pg-admin.test
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: akarx-pgadmin
+                port:
+                  number: 5050

@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: pgbench
+  namespace: pg-test-app
+spec:
+  containers:
+    - name: pgbench
+      image: postgres
+      env:
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: akarx-pguser-akarx
+              key: password
+      # command: ["/bin/sh", "-c"]
+      # args:
+      #   - pgbench -h akarx-pgbouncer -p 5432 -U akarx -d akarx -c 10 -T 60
