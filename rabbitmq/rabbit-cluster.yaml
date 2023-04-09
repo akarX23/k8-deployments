@@ -1,0 +1,43 @@
+apiVersion: rabbitmq.com/v1beta1
+kind: RabbitmqCluster
+metadata:
+  name: akarx-rabbit-cluster
+  namespace: rabbitmq-test-app
+spec:
+  replicas: 3
+  persistence:
+    storageClassName: longhorn
+    storage: 5Gi
+  resources:
+    requests:
+      cpu: 2000m
+      memory: 3Gi
+    limits:
+      cpu: 2000m
+      memory: 3Gi
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: type
+                operator: In
+                values:
+                  - worker
+
+---
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: akarx-rabbit-cluster
+  namespace: rabbitmq-test-app
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: akarx-rabbit-cluster
+  endpoints:
+    - interval: 10s
+      port: prometheus
+  namespaceSelector:
+    matchNames:
+      - rabbitmq-test-app

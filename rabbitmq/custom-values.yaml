@@ -1,0 +1,59 @@
+fullnameOverride: "rabbit-clus-op"
+
+clusterOperator:
+  replicaCount: 2
+
+  resources:
+    limits:
+      memory: 12Gi
+      cpu: 8000m
+    requests:
+      memory: 8Gi
+      cpu: 4000m
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: type
+                operator: In
+                values:
+                  - master
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 10s
+      # namespace: rabbitmq-system
+
+msgTopologyOperator:
+  replicaCount: 2
+
+  fullnameOverride: "rabbit-msg-op"
+
+  resources:
+    limits:
+      memory: 8Gi
+      cpu: 4000m
+    requests:
+      memory: 6Gi
+      cpu: 2500m
+
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: type
+                operator: In
+                values:
+                  - master
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      interval: 10s
+      # namespace: rabbitmq-system
