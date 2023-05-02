@@ -3,3 +3,5 @@ pgsql/pg-node-app/node-modules
 pgsql/postgres-operator-examples
 
 intel-hero/
+
+kubeflow/manifests
