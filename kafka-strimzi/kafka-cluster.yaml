@@ -27,36 +27,36 @@ spec:
       type: persistent-claim
       size: 2Gi
       deleteClaim: true
-      class: kafka-storage
-    template:
-      pod:
-        affinity:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: In
-                      values:
-                        - k8-4
+      class: longhorn
+    # template:
+    #   pod:
+    #     affinity:
+    #       nodeAffinity:
+    #         requiredDuringSchedulingIgnoredDuringExecution:
+    #           nodeSelectorTerms:
+    #             - matchExpressions:
+    #                 - key: kubernetes.io/hostname
+    #                   operator: In
+    #                   values:
+    #                     - k8-4
   zookeeper:
     replicas: 3
     storage:
       type: persistent-claim
       size: 2Gi
       deleteClaim: true
-      class: kafka-storage
-    template:
-      pod:
-        affinity:
-          nodeAffinity:
-            requiredDuringSchedulingIgnoredDuringExecution:
-              nodeSelectorTerms:
-                - matchExpressions:
-                    - key: kubernetes.io/hostname
-                      operator: In
-                      values:
-                        - k8-5
+      class: longhorn
+    # template:
+    #   pod:
+    #     affinity:
+    #       nodeAffinity:
+    #         requiredDuringSchedulingIgnoredDuringExecution:
+    #           nodeSelectorTerms:
+    #             - matchExpressions:
+    #                 - key: kubernetes.io/hostname
+    #                   operator: In
+    #                   values:
+    #                     - k8-5
   entityOperator:
     topicOperator: {}
     userOperator: {}
