@@ -1,0 +1,122 @@
+clusterName: "akarx-cluster"
+nodeGroup: "master"
+
+masterService: "akarx-cluster-master"
+
+roles:
+  - master
+  - ingest
+  - data
+  - remote_cluster_client
+
+replicas: 3
+
+config:
+  opensearch.yml: |
+    cluster.name: akarx-cluster
+    bootstrap.memory_lock: true
+    plugins:
+      security:
+        disabled: true
+        # ssl:
+        #   transport:
+        #     pemcert_filepath: esnode.pem
+        #     pemkey_filepath: esnode-key.pem
+        #     pemtrustedcas_filepath: root-ca.pem
+        #     enforce_hostname_verification: false
+        #   http:
+        #     enabled: true
+        #     pemcert_filepath: esnode.pem
+        #     pemkey_filepath: esnode-key.pem
+        #     pemtrustedcas_filepath: root-ca.pem
+        # allow_unsafe_democertificates: true
+        # allow_default_init_securityindex: true
+        # authcz:
+        #   admin_dn:
+        #     - CN=kirk,OU=client,O=client,L=test,C=de
+        # audit.type: internal_opensearch
+        # enable_snapshot_restore_privilege: true
+        # check_snapshot_restore_write_privileges: true
+        # restapi:
+        #   roles_enabled: ["all_access", "security_rest_api_access"]
+        # system_indices:
+        #   enabled: true
+        #   indices:
+        #     [
+        #       ".opendistro-alerting-config",
+        #       ".opendistro-alerting-alert*",
+        #       ".opendistro-anomaly-results*",
+        #       ".opendistro-anomaly-detector*",
+        #       ".opendistro-anomaly-checkpoints",
+        #       ".opendistro-anomaly-detection-state",
+        #       ".opendistro-reports-*",
+        #       ".opendistro-notifications-*",
+        #       ".opendistro-notebooks",
+        #       ".opendistro-asynchronous-search-response*",
+        #     ]
+    ######## End OpenSearch Security Demo Configuration ########
+
+opensearchJavaOpts: "-Xmx512m -Xms512m"
+
+resources:
+  requests:
+    cpu: "1000m"
+    memory: "2Gi"
+
+persistence:
+  enabled: true
+  storageClass: "longhorn"
+  enableInitChown: true
+
+ingress:
+  enabled: true
+  ingressClassName: nginx-ingress
+  path: /
+  hosts:
+    - os.cluster
+
+networkHost: "0.0.0.0"
+
+extraInitContainers:
+  ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
+  - name: sysctl
+    image: docker.io/bitnami/bitnami-shell:10-debian-10-r199
+    imagePullPolicy: "IfNotPresent"
+    command:
+      - /bin/bash
+      - -ec
+      - |
+        CURRENT=`sysctl -n vm.max_map_count`;
+        DESIRED="262144";
+        if [ "$DESIRED" -gt "$CURRENT" ]; then
+            sysctl -w vm.max_map_count=262144;
+        fi;
+        CURRENT=`sysctl -n fs.file-max`;
+        DESIRED="65536";
+        if [ "$DESIRED" -gt "$CURRENT" ]; then
+            sysctl -w fs.file-max=65536;
+        fi;
+    securityContext:
+      runAsUser: 0
+      privileged: true
+
+securityConfig:
+  enabled: false
+
+terminationGracePeriod: 5
+# plugins:
+#   enabled: true
+#   installList:
+#     - "https://github.com/aiven/prometheus-exporter-plugin-for-opensearch/releases/download/2.1.0.0/prometheus-exporter-2.1.0.0.zip"
+
+opensearchLifecycle:
+  postStart:
+    exec:
+      command:
+        - bash
+        - -c
+        - |
+          #!/bin/bash
+          sleep 30
+          curl -XPOST localhost:9200/_plugins/_performanceanalyzer/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}'
+          curl -XPOST localhost:9200/_plugins/_performanceanalyzer/rca/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}'

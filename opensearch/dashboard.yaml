@@ -1,0 +1,19 @@
+opensearchHosts: "http://akarx-cluster-master:9200"
+replicaCount: 1
+
+extraEnvs:
+  - name: "DISABLE_SECURITY_DASHBOARDS_PLUGIN"
+    value: "true"
+
+ingress:
+  enabled: true
+  ingressClassName: nginx-ingress
+  hosts:
+    - host: os.dashboard
+      paths:
+        - path: /
+          backend:
+            serviceName: ""
+            servicePort: ""
+
+terminationGracePeriod: 5
