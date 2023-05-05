@@ -54,17 +54,18 @@ config:
         #     ]
     ######## End OpenSearch Security Demo Configuration ########
 
-opensearchJavaOpts: "-Xmx512m -Xms512m"
+opensearchJavaOpts: "-Xmx3000m -Xms3000m"
 
 resources:
   requests:
-    cpu: "1000m"
-    memory: "2Gi"
+    cpu: "2000m"
+    memory: "6Gi"
 
 persistence:
   enabled: true
   storageClass: "longhorn"
   enableInitChown: true
+  size: 6Gi
 
 ingress:
   enabled: false
@@ -73,28 +74,7 @@ ingress:
   hosts:
     - os.data
 
-securityContext:
-  capabilities:
-    drop:
-      - ALL
-  # readOnlyRootFilesystem: true
-  runAsNonRoot: false
-  runAsUser: 1000
-  privileged: true
-
-podSecurityContext:
-  fsGroup: 1000
-  runAsUser: 1000
-  privileged: true
-
-sysctlVmMaxMapCount: 262144
 networkHost: "0.0.0.0"
-
-sysctl:
-  enabled: false
-
-sysctlInit:
-  enabled: false
 
 extraInitContainers:
   ## Image that performs the sysctl operation to modify Kernel settings (needed sometimes to avoid boot errors)
@@ -119,7 +99,7 @@ extraInitContainers:
       runAsUser: 0
       privileged: true
 
-terminationGracePeriod: 5
+terminationGracePeriod: 120
 
 opensearchLifecycle:
   postStart:
@@ -132,3 +112,42 @@ opensearchLifecycle:
           sleep 30
           curl -XPOST localhost:9200/_plugins/_performanceanalyzer/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}'
           curl -XPOST localhost:9200/_plugins/_performanceanalyzer/rca/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}'
+
+lifecycle:
+  preStop:
+    exec:
+      command:
+        - bash
+        - -c
+        - |
+          #!/bin/bash
+          echo "Running Pre Stop script"
+          TEMPLATE_NAME=my_template
+          INDEX_PATTERN="logstash-*"
+          REPLICA_COUNT=1
+          ES_URL=http://localhost:9200
+          while [[ "$(curl -s -o /dev/null -w '%{http_code}\n' $ES_URL)" != "200" ]]; do sleep 1; done
+
+          echo "Setting Replica count" >> /proc/1/fd/1
+          curl -XPUT "$ES_URL/_template/$TEMPLATE_NAME" -H 'Content-Type: application/json' -d'{"index_patterns":['\""$INDEX_PATTERN"\"'],"settings":{"number_of_replicas":'$REPLICA_COUNT'}}'
+
+          echo "setting shard allocation" >> /proc/1/fd/1
+          curl -XPUT http://localhost:9200/_cluster/settings -d '{
+              "transient" : {
+                  "cluster.routing.allocation.enable" : "all"
+              }
+          }'
+          GREEN_STATUS="green"
+
+          while true
+          do
+            sleep 10
+            CLUSTER_HEALTH=$(curl -s -X GET "localhost:9200/_cluster/health?pretty" | grep -Po '"status"\s*:\s*"\K[^"]+')
+            
+            if [ "$CLUSTER_HEALTH" == "$GREEN_STATUS" ]; then
+              echo "Cluster health is $GREEN_STATUS" >> /proc/1/fd/1
+              break
+            fi
+             
+            echo "Cluster health is $CLUSTER_HEALTH, waiting for $GREEN_STATUS..." >> /proc/1/fd/1
+          done
