@@ -1,0 +1,43 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: prestop-script
+  namespace: opensearch
+data:
+  prestop.sh: |
+    #!/bin/bash
+
+    echo "Relocating shards"
+
+    curl -XPOST -H "Content-Type: application/json" "http://localhost:9200/_cluster/reroute" -d '{
+      "commands": [
+        {
+          "allocate_empty_primary": {
+            "index": "*",
+            "node": "null",
+            "accept_data_loss": true
+          }
+        },
+        {
+          "allocate_stale_primary": {
+            "index": "*",
+            "node": "null"
+          }
+        }
+      ]
+    }'
+
+    GREEN_STATUS="green"
+
+    while true
+    do
+        sleep 10
+        CLUSTER_HEALTH=$(curl -s -X GET "localhost:9200/_cluster/health?pretty" | grep -Po '"status"\s*:\s*"\K[^"]+')
+
+        if [ "$CLUSTER_HEALTH" == "$GREEN_STATUS" ]; then
+            echo "Cluster health is $GREEN_STATUS"
+            break
+        fi
+
+        echo "Cluster health is $CLUSTER_HEALTH, waiting for $GREEN_STATUS..."
+    done

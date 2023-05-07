@@ -7,7 +7,7 @@ roles:
   - ingest
   - data
 
-replicas: 5
+replicas: 10
 
 config:
   opensearch.yml: |
@@ -17,12 +17,12 @@ config:
       security:
         disabled: true
 
-opensearchJavaOpts: "-Xmx3000m -Xms3000m"
+opensearchJavaOpts: "-Xmx4000m -Xms4000m"
 
 resources:
   requests:
-    cpu: "2000m"
-    memory: "6Gi"
+    cpu: "4000m"
+    memory: "8Gi"
 
 persistence:
   enabled: true
@@ -31,7 +31,7 @@ persistence:
   size: 6Gi
 
 ingress:
-  enabled: false
+  enabled: true
   ingressClassName: nginx-ingress
   path: /
   hosts:
@@ -62,7 +62,27 @@ extraInitContainers:
       runAsUser: 0
       privileged: true
 
-terminationGracePeriod: 120
+terminationGracePeriod: 100
+
+# lifecycle:
+#   postStart:
+#     exec:
+#       command:
+#         - bash
+#         - -c
+#         - |
+#           #!/bin/bash
+#           sleep 60
+#           touch /usr/share/opensearch/custom-logs
+#           curl -XPOST localhost:9200/_plugins/_performanceanalyzer/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}' >> /usr/share/opensearch/custom-logs
+#           curl -XPOST localhost:9200/_plugins/_performanceanalyzer/rca/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}' >> /usr/share/opensearch/custom-logs
+#           curl -XPUT localhost:9200/_cluster/settings -H 'Content-Type: application/json' -d "{\"transient\": {\"cluster.routing.allocation.exclude._name\": \"$NODE_NAME\"}}" >> /usr/share/opensearch/custom-logs
+
+extraEnvs:
+  - name: NODE_NAME
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
 
 opensearchLifecycle:
   postStart:
@@ -72,11 +92,11 @@ opensearchLifecycle:
         - -c
         - |
           #!/bin/bash
-          sleep 30
-          curl -XPOST localhost:9200/_plugins/_performanceanalyzer/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}'
-          curl -XPOST localhost:9200/_plugins/_performanceanalyzer/rca/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}'
-
-lifecycle:
+          sleep 100
+          touch /usr/share/opensearch/custom-logs
+          curl -XPOST localhost:9200/_plugins/_performanceanalyzer/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}' >> /usr/share/opensearch/custom-logs
+          curl -XPOST localhost:9200/_plugins/_performanceanalyzer/rca/cluster/config -H 'Content-Type: application/json' -d '{"enabled": true}' >> /usr/share/opensearch/custom-logs
+          # curl -XPUT localhost:9200/_cluster/settings -H 'Content-Type: application/json' -d "{\"transient\": {\"cluster.routing.allocation.exclude._name\": \"$NODE_NAME\"}}" >> /usr/share/opensearch/custom-logs
   preStop:
     exec:
       command:
@@ -84,33 +104,54 @@ lifecycle:
         - -c
         - |
           #!/bin/bash
-          echo "Running Pre Stop script"
-          TEMPLATE_NAME=my_template
-          INDEX_PATTERN="logstash-*"
-          REPLICA_COUNT=1
-          ES_URL=http://localhost:9200
-          while [[ "$(curl -s -o /dev/null -w '%{http_code}\n' $ES_URL)" != "200" ]]; do sleep 1; done
 
-          echo "Setting Replica count" >> /proc/1/fd/1
-          curl -XPUT "$ES_URL/_template/$TEMPLATE_NAME" -H 'Content-Type: application/json' -d'{"index_patterns":['\""$INDEX_PATTERN"\"'],"settings":{"number_of_replicas":'$REPLICA_COUNT'}}'
+          # echo "Relocating shards for $NODE_NAME" >> /usr/share/opensearch/custom-logs 
 
-          echo "setting shard allocation" >> /proc/1/fd/1
-          curl -XPUT http://localhost:9200/_cluster/settings -d '{
-              "transient" : {
-                  "cluster.routing.allocation.enable" : "all"
-              }
-          }'
+          # curl -XPUT localhost:9200/_cluster/settings -H 'Content-Type: application/json' -d "{\"transient\": {\"cluster.routing.allocation.exclude._name\": \"$NODE_NAME\"}}" >> /usr/share/opensearch/custom-logs 
+
           GREEN_STATUS="green"
 
           while true
           do
-            sleep 10
-            CLUSTER_HEALTH=$(curl -s -X GET "localhost:9200/_cluster/health?pretty" | grep -Po '"status"\s*:\s*"\K[^"]+')
-            
-            if [ "$CLUSTER_HEALTH" == "$GREEN_STATUS" ]; then
-              echo "Cluster health is $GREEN_STATUS" >> /proc/1/fd/1
-              break
-            fi
-             
-            echo "Cluster health is $CLUSTER_HEALTH, waiting for $GREEN_STATUS..." >> /proc/1/fd/1
+              sleep 5
+              CLUSTER_HEALTH=$(curl -s -X GET "localhost:9200/_cluster/health?pretty" | grep -Po '"status"\s*:\s*"\K[^"]+')
+
+              if [ "$CLUSTER_HEALTH" == "$GREEN_STATUS" ]; then
+                  echo "Cluster health is $GREEN_STATUS" >> /usr/share/opensearch/custom-logs 
+                  break
+              fi
+
+              echo "Cluster health is $CLUSTER_HEALTH, waiting for $GREEN_STATUS..." >> /usr/share/opensearch/custom-logs 
           done
+
+# #!/bin/bash
+# echo "Running Pre Stop script"
+# TEMPLATE_NAME=my_template
+# INDEX_PATTERN="logstash-*"
+# REPLICA_COUNT=1
+# ES_URL=http://localhost:9200
+# while [[ "$(curl -s -o /dev/null -w '%{http_code}\n' $ES_URL)" != "200" ]]; do sleep 1; done
+
+# echo "Setting Replica count" >> /proc/1/fd/1
+# curl -XPUT "$ES_URL/_template/$TEMPLATE_NAME" -H 'Content-Type: application/json' -d'{"index_patterns":['\""$INDEX_PATTERN"\"'],"settings":{"number_of_replicas":'$REPLICA_COUNT'}}'
+
+# echo "setting shard allocation" >> /proc/1/fd/1
+# curl -XPUT http://localhost:9200/_cluster/settings -d '{
+#     "transient" : {
+#         "cluster.routing.allocation.enable" : "all"
+#     }
+# }'
+# GREEN_STATUS="green"
+
+# while true
+# do
+#   sleep 10
+#   CLUSTER_HEALTH=$(curl -s -X GET "localhost:9200/_cluster/health?pretty" | grep -Po '"status"\s*:\s*"\K[^"]+')
+
+#   if [ "$CLUSTER_HEALTH" == "$GREEN_STATUS" ]; then
+#     echo "Cluster health is $GREEN_STATUS" >> /proc/1/fd/1
+#     break
+#   fi
+
+#   echo "Cluster health is $CLUSTER_HEALTH, waiting for $GREEN_STATUS..." >> /proc/1/fd/1
+# done

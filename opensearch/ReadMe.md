@@ -51,6 +51,8 @@ When we ran the benchmark (discussed later) without the `preStop` script, the cl
 
 > The PreStop hook is called immediately before a container is terminated. It is blocking, meaning it is synchronous, so it must complete before the call to delete the container can be sent.
 
+We followed [this link](https://jinnabalu.medium.com/scaling-down-an-elasticsearch-cluster-da92d5c64c97) for scaling down an Opensearch Cluster the right way.
+
 ### Benchmarking
 
 We used the **Opensearch Benchmark** tool which runs on a completely separate VM. It is pointed to the Opensearch Cluster using an Ingress which in turn points to the `akarx-master-service` of the cluster. Command to run the benchmark:
@@ -62,3 +64,13 @@ opensearch-benchmark execute_test --target-hosts=os.cluster:80 --pipeline benchm
 where `os.cluster` is the Ingress host.
 
 The HPA detected the increase in load and the extra pods were spun up which joined the cluster and shared the load. We also continuosly checked the cluster health and it remained **green** until the cluster was scaling out. When the load reduced, the pods were put in a `terminating` state. On the shutdown of a pod, the cluster went into **yellow** state while the next batch of pods were still in terminating state. As the cluster regains its health, those pods are also brought down.
+
+### Scaling Policies
+
+We experimented with scaling policies with the HorizontalPodAutoscaler. In our setup, we put policies in place where:
+
+- The master pods will be sent the **scaleDown signal** for **maximum of 1 pods in 60 seconds**, and a **scaleUp signal** of maximum of **2 pods in 60 seconds**.
+- The master pods will be sent the **scaleDown signal** for **maximum of 2 pods in 60 seconds**, and a **scaleUp signal** of maximum of **3 pods in 60 seconds**.
+
+**Outcome**
+The cluster had enough time to rebalance itself when pods left since not a lot of nodes will die at once.

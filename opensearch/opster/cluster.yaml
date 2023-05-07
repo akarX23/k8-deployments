@@ -1,0 +1,66 @@
+apiVersion: opensearch.opster.io/v1
+kind: OpenSearchCluster
+metadata:
+  name: akarx-cluster
+  namespace: opensearch-operator
+spec:
+  confMgmt:
+    smartScaler: true
+  security:
+    tls:
+      transport:
+        generate: true
+        perNode: true
+        nodesDn: ["os.cluster"]
+        adminDn: ["os.cluster"]
+      http:
+        generate: true
+  general:
+    serviceName: akarx-cluster
+    version: 2.3.0
+    drainDataNodes: true
+  dashboards:
+    tls:
+      enable: true
+      generate: true
+    enable: true
+    version: 2.3.0
+    replicas: 1
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "200m"
+      limits:
+        memory: "512Mi"
+        cpu: "200m"
+  nodePools:
+    - component: masters
+      replicas: 3
+      diskSize: "5Gi"
+      jvm: -Xmx2048M -Xms2048M
+      nodeSelector:
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "2000m"
+        limits:
+          memory: "4Gi"
+          cpu: "2000m"
+      roles:
+        - "cluster_manager"
+        - "data"
+    - component: data
+      replicas: 8
+      jvm: -Xmx2048M -Xms2048M
+      diskSize: "5Gi"
+      nodeSelector:
+      resources:
+        requests:
+          memory: "4Gi"
+          cpu: "2000m"
+        limits:
+          memory: "4Gi"
+          cpu: "2000m"
+      roles:
+        - "ingest"
+        - "data"

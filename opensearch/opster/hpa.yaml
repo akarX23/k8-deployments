@@ -2,12 +2,12 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: opensearch-master-scaler
-  namespace: opensearch
+  namespace: opensearch-operator
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: StatefulSet
-    name: akarx-cluster-master
+    name: akarx-cluster-masters
   behavior:
     scaleDown:
       stabilizationWindowSeconds: 100
@@ -35,7 +35,7 @@ apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
   name: opensearch-data-scaler
-  namespace: opensearch
+  namespace: opensearch-operator
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
